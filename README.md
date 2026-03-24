@@ -63,6 +63,8 @@ This layer was also partially implemented. I started by using dependency injecti
 - Compliance with SOLID principles
 I kept the layer clear of business logic and used interfaces to separate it from client and repository code. I also used mappers to avoid adding builders or constructors to the service.
 
+I also made a potentially incorrect assumption on the id. I used the authorization_code from the downstream as that looks to be a UUID however this doesn't seem to align with the requirements as they state `Feel free to choose whatever format you think makes most sense` my implementation is potentially incorrect here if this was a real story I'm working on I would be raising something like this in standup or refinement.
+
 
 Repository:
 The repository is largely unchanged I replaced the previous PostPaymentResponse with a PaymentEntitiy. This is a result of using two different responses the GetPaymentResponse and PostPaymentResponse. I also added an interface to decouple it from the service layer this would make it easier to replace the existing repository with a different solution in the future.
