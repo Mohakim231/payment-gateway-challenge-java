@@ -1,6 +1,7 @@
 package com.checkout.payment.gateway.configuration;
 
 import java.time.Duration;
+import com.checkout.payment.gateway.client.BankResponseErrorHandler;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ public class ApplicationConfiguration {
     return builder
         .setConnectTimeout(Duration.ofMillis(10000))
         .setReadTimeout(Duration.ofMillis(10000))
+        .errorHandler(new BankResponseErrorHandler())
         .build();
   }
 }

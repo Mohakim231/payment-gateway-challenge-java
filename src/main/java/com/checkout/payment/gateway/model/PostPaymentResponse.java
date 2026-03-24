@@ -1,16 +1,22 @@
 package com.checkout.payment.gateway.model;
 
 import com.checkout.payment.gateway.enums.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PostPaymentResponse {
   private UUID id;
   private PaymentStatus status;
-  private int cardNumberLastFour;
-  private int expiryMonth;
-  private int expiryYear;
+  @JsonProperty("last_four_card_digits")
+  private String cardNumberLastFour;
+  @JsonProperty("expiry_month")
+  private Integer expiryMonth;
+  @JsonProperty("expiry_year")
+  private Integer expiryYear;
   private String currency;
-  private int amount;
+  private Long amount;
 
 
   public UUID getId() {
@@ -29,27 +35,27 @@ public class PostPaymentResponse {
     this.status = status;
   }
 
-  public int getCardNumberLastFour() {
+  public String getCardNumberLastFour() {
     return cardNumberLastFour;
   }
 
-  public void setCardNumberLastFour(int cardNumberLastFour) {
+  public void setCardNumberLastFour(String cardNumberLastFour) {
     this.cardNumberLastFour = cardNumberLastFour;
   }
 
-  public int getExpiryMonth() {
+  public Integer getExpiryMonth() {
     return expiryMonth;
   }
 
-  public void setExpiryMonth(int expiryMonth) {
+  public void setExpiryMonth(Integer expiryMonth) {
     this.expiryMonth = expiryMonth;
   }
 
-  public int getExpiryYear() {
+  public Integer getExpiryYear() {
     return expiryYear;
   }
 
-  public void setExpiryYear(int expiryYear) {
+  public void setExpiryYear(Integer expiryYear) {
     this.expiryYear = expiryYear;
   }
 
@@ -61,17 +67,17 @@ public class PostPaymentResponse {
     this.currency = currency;
   }
 
-  public int getAmount() {
+  public Long getAmount() {
     return amount;
   }
 
-  public void setAmount(int amount) {
+  public void setAmount(Long amount) {
     this.amount = amount;
   }
 
   @Override
   public String toString() {
-    return "GetPaymentResponse{" +
+    return "PostPaymentResponse{" +
         "id=" + id +
         ", status=" + status +
         ", cardNumberLastFour=" + cardNumberLastFour +
