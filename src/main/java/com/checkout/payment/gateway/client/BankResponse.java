@@ -1,16 +1,34 @@
 package com.checkout.payment.gateway.client;
 
+import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.UUID;
 
-public class BankResponse {
-  private boolean authorized;
+public record BankResponse(
+    boolean authorized,
+    @JsonProperty("authorization_code") String authorizationCode
+) {
+  private static final Logger LOG = LoggerFactory.getLogger(BankResponse.class);
 
-  @JsonProperty("authorization_code")
-  private String authorizationCode;
+  public BankResponse {
+    authorizationCode = (authorizationCode != null) ? authorizationCode.trim() : "";
+  }
 
-  public Boolean isAuthorized() { return authorized; }
-  public void setAuthorized(boolean authorized) { this.authorized = authorized; }
+  public UUID toPaymentId() {
+    if (authorized && !authorizationCode.isEmpty()) {
+      try {
+        return UUID.fromString(authorizationCode);
+      } catch (IllegalArgumentException e) {
+        LOG.warn("Invalid authorization code format: {}, generating random ID", authorizationCode);
+        return UUID.randomUUID();
+      }
+    }
+    return UUID.randomUUID();
+  }
 
-  public String getAuthorizationCode() { return authorizationCode; }
-  public void setAuthorizationCode(String authorizationCode) { this.authorizationCode = authorizationCode; }
+  public PaymentStatus toPaymentStatus() {
+    return authorized ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED;
+  }
 }

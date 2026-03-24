@@ -1,10 +1,11 @@
-package com.checkout.payment.gateway.validation;
+package com.checkout.payment.gateway.unit.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.checkout.payment.gateway.model.PostPaymentRequest;
+import com.checkout.payment.gateway.model.request.PostPaymentRequest;
 import java.time.YearMonth;
 import java.util.stream.Stream;
+import com.checkout.payment.gateway.validation.ExpiryDateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

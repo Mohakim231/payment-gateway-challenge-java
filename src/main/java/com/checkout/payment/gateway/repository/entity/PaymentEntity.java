@@ -12,18 +12,25 @@ public class PaymentEntity {
   private String currency;
   private Long amount;
 
+  protected PaymentEntity() {}
+
+  public PaymentEntity(UUID id, PaymentStatus status, String cardNumberLastFour,
+      Integer expiryMonth, Integer expiryYear,
+      String currency, Long amount) {
+    this.id = id;
+    this.status = status;
+    this.cardNumberLastFour = cardNumberLastFour;
+    this.expiryMonth = expiryMonth;
+    this.expiryYear = expiryYear;
+    this.currency = currency;
+    this.amount = amount;
+  }
+
   public UUID getId() { return id; }
-  public void setId(UUID id) { this.id = id; }
   public PaymentStatus getStatus() { return status; }
-  public void setStatus(PaymentStatus status) { this.status = status; }
   public String getCardNumberLastFour() { return cardNumberLastFour; }
-  public void setCardNumberLastFour(String cardNumberLastFour) { this.cardNumberLastFour = cardNumberLastFour; }
   public Integer getExpiryMonth() { return expiryMonth; }
-  public void setExpiryMonth(Integer expiryMonth) { this.expiryMonth = expiryMonth; }
   public Integer getExpiryYear() { return expiryYear; }
-  public void setExpiryYear(Integer expiryYear) { this.expiryYear = expiryYear; }
   public String getCurrency() { return currency; }
-  public void setCurrency(String currency) { this.currency = currency; }
   public Long getAmount() { return amount; }
-  public void setAmount(Long amount) { this.amount = amount; }
 }

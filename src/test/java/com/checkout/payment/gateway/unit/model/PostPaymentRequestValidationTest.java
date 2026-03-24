@@ -1,7 +1,8 @@
-package com.checkout.payment.gateway.model;
+package com.checkout.payment.gateway.unit.model;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.checkout.payment.gateway.model.request.PostPaymentRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import static com.checkout.payment.gateway.constant.Constants.ACQUIRING_BANK_PROCESS_URL;
+
 @Component
 public class AcquiringBankClientImpl implements AcquiringBankClient {
 
@@ -25,7 +27,7 @@ public class AcquiringBankClientImpl implements AcquiringBankClient {
   public BankResponse processBankPayment(BankRequest bankRequest) {
     try {
       return restTemplate.postForEntity(
-          bankSimulatorUrl + "/payments",
+          bankSimulatorUrl + ACQUIRING_BANK_PROCESS_URL,
           bankRequest,
           BankResponse.class
       ).getBody();

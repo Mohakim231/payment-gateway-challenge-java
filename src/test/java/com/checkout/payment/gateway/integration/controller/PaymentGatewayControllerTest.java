@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.controller;
+package com.checkout.payment.gateway.integration.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -13,7 +13,7 @@ import com.checkout.payment.gateway.client.AcquiringBankClient;
 import com.checkout.payment.gateway.client.BankResponse;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.BankProcessingException;
-import com.checkout.payment.gateway.model.PostPaymentRequest;
+import com.checkout.payment.gateway.model.request.PostPaymentRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import java.time.YearMonth;
@@ -46,18 +46,17 @@ class PaymentGatewayControllerTest {
 
   @Test
   void processPaymentAndRetrieve_EndToEnd() throws Exception {
+    UUID authCode = UUID.randomUUID();
     PostPaymentRequest request = createValidRequest();
 
-    BankResponse bankResponse = new BankResponse();
-    bankResponse.setAuthorized(true);
-    bankResponse.setAuthorizationCode(UUID.randomUUID().toString());
-    when(bankClient.processBankPayment(any())).thenReturn(bankResponse);
+    when(bankClient.processBankPayment(any()))
+        .thenReturn(new BankResponse(true, authCode.toString()));
 
     MvcResult postResult = mvc.perform(post("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.id").value(authCode.toString()))
         .andExpect(jsonPath("$.status").value(PaymentStatus.AUTHORIZED.getName()))
         .andExpect(jsonPath("$.last_four_card_digits").value("3456"))
         .andExpect(jsonPath("$.expiry_month").value(12))
@@ -82,12 +81,30 @@ class PaymentGatewayControllerTest {
   }
 
   @Test
-  void processPayment_WhenBankDeclines_ReturnsOkAndDeclined() throws Exception {
+  void processPayment_whenBankAuthorizes_returnsOkAndAuthorizedStatus() throws Exception {
+    UUID authCode = UUID.randomUUID();
     PostPaymentRequest request = createValidRequest();
 
-    BankResponse bankResponse = new BankResponse();
-    bankResponse.setAuthorized(false);
-    when(bankClient.processBankPayment(any())).thenReturn(bankResponse);
+    when(bankClient.processBankPayment(any()))
+        .thenReturn(new BankResponse(true, authCode.toString()));
+
+    mvc.perform(post("/payment")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(authCode.toString()))
+        .andExpect(jsonPath("$.status").value(PaymentStatus.AUTHORIZED.getName()))
+        .andExpect(jsonPath("$.last_four_card_digits").value("3456"))
+        .andExpect(jsonPath("$.currency").value("USD"))
+        .andExpect(jsonPath("$.amount").value(1000));
+  }
+
+  @Test
+  void processPayment_whenBankDeclines_returnsOkAndDeclinedStatus() throws Exception {
+    PostPaymentRequest request = createValidRequest();
+
+    when(bankClient.processBankPayment(any()))
+        .thenReturn(new BankResponse(false, ""));
 
     mvc.perform(post("/payment")
             .contentType(MediaType.APPLICATION_JSON)
@@ -99,9 +116,26 @@ class PaymentGatewayControllerTest {
         .andExpect(jsonPath("$.currency").value("USD"));
   }
 
+  @Test
+  void processPayment_whenBankFails_returns500AndGenericMessage() throws Exception {
+    PostPaymentRequest request = createValidRequest();
+    String genericMessage = "Your payment could not be processed at this time. Please try again later.";
+
+    when(bankClient.processBankPayment(any()))
+        .thenThrow(new BankProcessingException(genericMessage));
+
+    mvc.perform(post("/payment")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.message").value(genericMessage))
+        .andExpect(jsonPath("$.error").doesNotExist());
+  }
+
   @ParameterizedTest(name = "Invalid Request: {1}")
   @MethodSource("provideInvalidRequests")
-  void processPayment_WithInvalidData_ReturnsRejectedAndSpecificMessage(PostPaymentRequest invalidRequest, String scenario, String expectedError) throws Exception {
+  void processPayment_withInvalidData_returnsRejectedAndSpecificMessage(
+      PostPaymentRequest invalidRequest, String scenario, String expectedError) throws Exception {
     mvc.perform(post("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -113,40 +147,44 @@ class PaymentGatewayControllerTest {
   static Stream<Arguments> provideInvalidRequests() {
     int pastYear = YearMonth.now().getYear() - 1;
 
-    PostPaymentRequest nullCard = createValidRequest(); nullCard.setCardNumber(null);
-    PostPaymentRequest shortCard = createValidRequest(); shortCard.setCardNumber("1234567890123");
-    PostPaymentRequest zeroMonth = createValidRequest(); zeroMonth.setExpiryMonth(0);
-    PostPaymentRequest pastExpiry = createValidRequest(); pastExpiry.setExpiryYear(pastYear);
-    PostPaymentRequest nullAmount = createValidRequest(); nullAmount.setAmount(null);
-    PostPaymentRequest zeroAmount = createValidRequest(); zeroAmount.setAmount(0L);
+    PostPaymentRequest nullCard = createValidRequest();    nullCard.setCardNumber(null);
+    PostPaymentRequest shortCard = createValidRequest();   shortCard.setCardNumber("1234567890123");
+    PostPaymentRequest zeroMonth = createValidRequest();   zeroMonth.setExpiryMonth(0);
+    PostPaymentRequest pastExpiry = createValidRequest();  pastExpiry.setExpiryYear(pastYear);
+    PostPaymentRequest nullAmount = createValidRequest();  nullAmount.setAmount(null);
+    PostPaymentRequest zeroAmount = createValidRequest();  zeroAmount.setAmount(0L);
 
     return Stream.of(
-        Arguments.of(nullCard, "Null card number", "Card number is required"),
-        Arguments.of(shortCard, "Card number too short", "14-19 numeric characters"),
-        Arguments.of(zeroMonth, "Expiry month = 0", "must be at least 1"),
-        Arguments.of(pastExpiry, "Past expiry date", "Expiry date must be in the future"),
-        Arguments.of(nullAmount, "Null amount", "must not be null"),
-        Arguments.of(zeroAmount, "Zero amount", "must be greater than 0")
+        Arguments.of(nullCard,    "Null card number",    "Card number is required"),
+        Arguments.of(shortCard,   "Card number too short", "14-19 numeric characters"),
+        Arguments.of(zeroMonth,   "Expiry month = 0",    "must be at least 1"),
+        Arguments.of(pastExpiry,  "Past expiry date",    "Expiry date must be in the future"),
+        Arguments.of(nullAmount,  "Null amount",         "must not be null"),
+        Arguments.of(zeroAmount,  "Zero amount",         "must be greater than 0")
     );
   }
 
   @Test
-  void processPayment_WhenBankFails_Returns500AndGenericMessage() throws Exception {
+  void getPayment_whenPaymentExists_returnsOkAndPaymentDetails() throws Exception {
+    UUID authCode = UUID.randomUUID();
     PostPaymentRequest request = createValidRequest();
-    String genericMessage = "Your payment could not be processed at this time. Please try again later.";
 
-    when(bankClient.processBankPayment(any())).thenThrow(new BankProcessingException(genericMessage));
+    when(bankClient.processBankPayment(any()))
+        .thenReturn(new BankResponse(true, authCode.toString()));
 
     mvc.perform(post("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.message").value(genericMessage))
-        .andExpect(jsonPath("$.error").doesNotExist());
+        .andExpect(status().isOk());
+
+    mvc.perform(get("/payment/" + authCode))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(authCode.toString()))
+        .andExpect(jsonPath("$.status").value(PaymentStatus.AUTHORIZED.getName()));
   }
 
   @Test
-  void getPayment_WhenDoesNotExist_Returns404() throws Exception {
+  void getPayment_whenPaymentDoesNotExist_returns404() throws Exception {
     mvc.perform(get("/payment/" + UUID.randomUUID()))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Record not found"));

@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.model;
+package com.checkout.payment.gateway.model.request;
 
 import com.checkout.payment.gateway.validation.ValidExpiryDate;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,11 +10,15 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.io.Serializable;
 
+import static com.checkout.payment.gateway.constant.Constants.CARD_NUMBER_REGEX;
+import static com.checkout.payment.gateway.constant.Constants.CURRENCY_REGEX;
+import static com.checkout.payment.gateway.constant.Constants.CVV_REGEX;
+
 @ValidExpiryDate
 public class PostPaymentRequest implements Serializable {
 
   @NotBlank(message = "Card number is required")
-  @Pattern(regexp = "^[0-9]{14,19}$", message = "Card number must be 14-19 numeric characters")
+  @Pattern(regexp = CARD_NUMBER_REGEX, message = "Card number must be 14-19 numeric characters")
   @JsonProperty("card_number")
   private String cardNumber;
 
@@ -29,7 +33,7 @@ public class PostPaymentRequest implements Serializable {
   private Integer expiryYear;
 
   @NotBlank(message = "Currency is required")
-  @Pattern(regexp = "^(USD|EUR|GBP)$", message = "Currency must be USD, EUR, or GBP")
+  @Pattern(regexp = CURRENCY_REGEX, message = "Currency must be USD, EUR, or GBP")
   private String currency;
 
   @NotNull
@@ -37,7 +41,7 @@ public class PostPaymentRequest implements Serializable {
   private Long amount;
 
   @NotBlank(message = "CVV is required")
-  @Pattern(regexp = "^[0-9]{3,4}$", message = "CVV must be 3-4 numeric characters")
+  @Pattern(regexp = CVV_REGEX, message = "CVV must be 3-4 numeric characters")
   private String cvv;
 
   public String getCardNumber() {

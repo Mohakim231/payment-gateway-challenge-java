@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.exception;
+package com.checkout.payment.gateway.unit.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -6,7 +6,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.checkout.payment.gateway.enums.PaymentStatus;
-import com.checkout.payment.gateway.model.ErrorResponse;
+import com.checkout.payment.gateway.exception.BankProcessingException;
+import com.checkout.payment.gateway.exception.CommonExceptionHandler;
+import com.checkout.payment.gateway.exception.EventProcessingException;
+import com.checkout.payment.gateway.model.response.ErrorResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

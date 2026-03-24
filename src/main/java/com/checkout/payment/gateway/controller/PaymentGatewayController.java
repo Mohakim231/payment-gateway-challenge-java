@@ -1,8 +1,8 @@
 package com.checkout.payment.gateway.controller;
 
-import com.checkout.payment.gateway.model.GetPaymentResponse;
-import com.checkout.payment.gateway.model.PostPaymentRequest;
-import com.checkout.payment.gateway.model.PostPaymentResponse;
+import com.checkout.payment.gateway.model.response.GetPaymentResponse;
+import com.checkout.payment.gateway.model.request.PostPaymentRequest;
+import com.checkout.payment.gateway.model.response.PostPaymentResponse;
 import java.util.UUID;
 import com.checkout.payment.gateway.service.PaymentService;
 import jakarta.validation.Valid;
