@@ -10,7 +10,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.io.Serializable;
 
-//can be a record java 17 - removes boiler plate makes it immutable does record override equals and hashcode
 @ValidExpiryDate
 public class PostPaymentRequest implements Serializable {
 
