@@ -1,4 +1,4 @@
-package com.checkout.payment.gateway.unit.clients;
+package com.checkout.payment.gateway.unit.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
